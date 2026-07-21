@@ -6,4 +6,8 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\ReadFlow.DAL\ReadFlow.DAL.csproj" />
+  </ItemGroup>
+
 </Project>
