@@ -3,6 +3,8 @@ appsettings.*
 # Claude AI development files
 CLAUDE.md
 DAL.md
+BLL.md
+API.md
 
 # Created by https://www.toptal.com/developers/gitignore/api/aspnetcore
 # Edit at https://www.toptal.com/developers/gitignore?templates=aspnetcore
