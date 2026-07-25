@@ -1,4 +1,13 @@
+using System.Reflection;
+using System.Text.Json.Serialization;
+using FluentValidation;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi.Models;
+using ReadFlow.API.Middleware;
+using ReadFlow.BLL.Behaviors;
+using ReadFlow.BLL.Commands.Books;
+using ReadFlow.BLL.Mappings;
+using ReadFlow.BLL.Validators.Books;
 using ReadFlow.DAL.Data;
 using ReadFlow.DAL.Repositories.Implementations;
 using ReadFlow.DAL.Repositories.Interfaces;
@@ -11,33 +20,87 @@ namespace ReadFlow.API
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Add services to the container.
-
-            // Configure DbContext with PostgreSQL
+            // Database
             builder.Services.AddDbContext<AppDbContext>(options =>
                 options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-            // Register Unit of Work and Repositories
+            // Unit of Work
             builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
-            builder.Services.AddControllers();
-            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+            // MediatR
+            builder.Services.AddMediatR(cfg =>
+            {
+                cfg.RegisterServicesFromAssembly(typeof(CreateBookCommand).Assembly);
+            });
+
+            // FluentValidation
+            builder.Services.AddValidatorsFromAssembly(typeof(CreateBookCommandValidator).Assembly);
+
+            // AutoMapper
+            builder.Services.AddAutoMapper(typeof(BookMappingProfile).Assembly);
+
+            // Pipeline Behaviors
+            builder.Services.AddTransient(typeof(MediatR.IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
+            builder.Services.AddTransient(typeof(MediatR.IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
+
+            // Controllers
+            builder.Services.AddControllers()
+                .AddJsonOptions(options =>
+                {
+                    options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+                    options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+                });
+
+            // CORS
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowFrontend", policy =>
+                {
+                    policy.WithOrigins("http://localhost:3000")
+                          .AllowAnyHeader()
+                          .AllowAnyMethod()
+                          .AllowCredentials();
+                });
+            });
+
+            // Swagger
             builder.Services.AddEndpointsApiExplorer();
-            builder.Services.AddSwaggerGen();
+            builder.Services.AddSwaggerGen(options =>
+            {
+                options.SwaggerDoc("v1", new OpenApiInfo
+                {
+                    Title = "ReadFlow API",
+                    Version = "v1",
+                    Description = "API for ReadFlow - Book rating and review platform",
+                });
+
+                var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+                var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+                if (File.Exists(xmlPath))
+                {
+                    options.IncludeXmlComments(xmlPath);
+                }
+            });
 
             var app = builder.Build();
 
-            // Configure the HTTP request pipeline.
+            // Middleware pipeline
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();
-                app.UseSwaggerUI();
+                app.UseSwaggerUI(options =>
+                {
+                    options.SwaggerEndpoint("/swagger/v1/swagger.json", "ReadFlow API v1");
+                });
             }
 
+            app.UseMiddleware<ExceptionHandlingMiddleware>();
+            app.UseMiddleware<RequestLoggingMiddleware>();
+
             app.UseHttpsRedirection();
+            app.UseCors("AllowFrontend");
 
             app.UseAuthorization();
-
 
             app.MapControllers();
 
