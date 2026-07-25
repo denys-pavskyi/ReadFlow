@@ -23,9 +23,7 @@ public class UserMappingProfile : Profile
             .ForMember(dest => dest.Collections, opt => opt.Ignore())
             .ForMember(dest => dest.Ratings, opt => opt.Ignore())
             .ForMember(dest => dest.PostLikes, opt => opt.Ignore())
-            .ForMember(dest => dest.CommentVotes, opt => opt.Ignore())
-            .ForMember(dest => dest.Followers, opt => opt.Ignore())
-            .ForMember(dest => dest.Following, opt => opt.Ignore());
+            .ForMember(dest => dest.CommentVotes, opt => opt.Ignore());
 
         CreateMap<UpdateUserDto, User>()
             .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
