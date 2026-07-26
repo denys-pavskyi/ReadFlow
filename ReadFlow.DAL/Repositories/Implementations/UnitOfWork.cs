@@ -16,6 +16,7 @@ public class UnitOfWork : IUnitOfWork
     private ICommentRepository? _comments;
     private ICollectionRepository? _collections;
     private IPostRepository? _posts;
+    private IReadingGoalRepository? _readingGoals;
 
     public UnitOfWork(AppDbContext context)
     {
@@ -29,6 +30,7 @@ public class UnitOfWork : IUnitOfWork
     public ICommentRepository Comments => _comments ??= new CommentRepository(_context);
     public ICollectionRepository Collections => _collections ??= new CollectionRepository(_context);
     public IPostRepository Posts => _posts ??= new PostRepository(_context);
+    public IReadingGoalRepository ReadingGoals => _readingGoals ??= new ReadingGoalRepository(_context);
 
     public async Task<int> SaveChangesAsync()
     {
