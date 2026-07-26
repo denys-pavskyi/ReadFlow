@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using ReadFlow.DAL.Data;
 using ReadFlow.DAL.Data.Seeders;
 
@@ -11,15 +12,27 @@ public static class DatabaseExtensions
     {
         using var scope = services.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var logger = scope.ServiceProvider.GetRequiredService<ILogger<DatabaseSeeder>>();
 
-        await context.Database.MigrateAsync();
-
-        if (await context.Users.AnyAsync())
+        try
         {
-            return;
-        }
+            await context.Database.MigrateAsync();
 
-        var seeder = new DatabaseSeeder(context);
-        await seeder.SeedAllAsync();
+            if (await context.Users.AnyAsync() && await context.Books.AnyAsync())
+            {
+                logger.LogInformation("Database already seeded, skipping...");
+                return;
+            }
+
+            logger.LogInformation("Starting database seeding...");
+            var seeder = new DatabaseSeeder(context);
+            await seeder.SeedAllAsync();
+            logger.LogInformation("Database seeding completed successfully");
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error occurred while seeding database");
+            throw;
+        }
     }
 }

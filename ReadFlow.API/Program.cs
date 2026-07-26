@@ -3,13 +3,16 @@ using System.Text.Json.Serialization;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
+using ReadFlow.API.Filters;
 using ReadFlow.API.Middleware;
+using ReadFlow.API.Models;
 using ReadFlow.BLL.Behaviors;
 using ReadFlow.BLL.Commands.Books;
 using ReadFlow.BLL.Mappings;
 using ReadFlow.BLL.Services;
 using ReadFlow.BLL.Validators.Books;
 using ReadFlow.DAL.Data;
+using ReadFlow.DAL.Extensions;
 using ReadFlow.DAL.Repositories.Implementations;
 using ReadFlow.DAL.Repositories.Interfaces;
 
@@ -17,7 +20,7 @@ namespace ReadFlow.API
 {
     public class Program
     {
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
 
@@ -47,8 +50,12 @@ namespace ReadFlow.API
             builder.Services.AddTransient(typeof(MediatR.IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
             builder.Services.AddTransient(typeof(MediatR.IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
 
-            // Controllers
-            builder.Services.AddControllers()
+            builder.Services.AddControllers(options =>
+            {
+                options.Filters.Add<DatabaseExceptionFilter>();
+                options.Filters.Add<ValidationExceptionFilter>();
+                options.Filters.Add<DomainExceptionFilter>();
+            })
                 .AddJsonOptions(options =>
                 {
                     options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
@@ -88,7 +95,16 @@ namespace ReadFlow.API
 
             var app = builder.Build();
 
-            // Middleware pipeline
+            if (app.Environment.IsDevelopment())
+            {
+                app.UseDeveloperExceptionPage();
+            }
+            else
+            {
+                app.UseExceptionHandler("/error");
+                app.UseHsts();
+            }
+
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();
@@ -98,7 +114,32 @@ namespace ReadFlow.API
                 });
             }
 
-            app.UseMiddleware<ExceptionHandlingMiddleware>();
+            app.UseStatusCodePages(async context =>
+            {
+                var response = context.HttpContext.Response;
+
+                if (response.StatusCode == 404)
+                {
+                    await response.WriteAsJsonAsync(new ErrorResponse
+                    {
+                        Message = "The requested resource was not found",
+                        Code = "NotFound",
+                        TraceId = context.HttpContext.TraceIdentifier,
+                        Timestamp = DateTime.UtcNow
+                    });
+                }
+                else if (response.StatusCode == 401)
+                {
+                    await response.WriteAsJsonAsync(new ErrorResponse
+                    {
+                        Message = "Unauthorized access",
+                        Code = "Unauthorized",
+                        TraceId = context.HttpContext.TraceIdentifier,
+                        Timestamp = DateTime.UtcNow
+                    });
+                }
+            });
+
             app.UseMiddleware<RequestLoggingMiddleware>();
 
             app.UseHttpsRedirection();
