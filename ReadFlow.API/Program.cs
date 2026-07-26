@@ -7,6 +7,7 @@ using ReadFlow.API.Middleware;
 using ReadFlow.BLL.Behaviors;
 using ReadFlow.BLL.Commands.Books;
 using ReadFlow.BLL.Mappings;
+using ReadFlow.BLL.Services;
 using ReadFlow.BLL.Validators.Books;
 using ReadFlow.DAL.Data;
 using ReadFlow.DAL.Repositories.Implementations;
@@ -26,6 +27,9 @@ namespace ReadFlow.API
 
             // Unit of Work
             builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+            // Services
+            builder.Services.AddScoped<AnalyticsService>();
 
             // MediatR
             builder.Services.AddMediatR(cfg =>
