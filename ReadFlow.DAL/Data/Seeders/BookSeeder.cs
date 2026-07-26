@@ -17,7 +17,7 @@ public class BookSeeder : IDataSeeder
             .RuleFor(b => b.Author, f => f.Name.FullName())
             .RuleFor(b => b.ISBN, f => f.Random.Replace("###-#-##-######-#"))
             .RuleFor(b => b.Description, f => f.Lorem.Paragraphs(3))
-            .RuleFor(b => b.PublishedDate, f => f.Date.Past(50))
+            .RuleFor(b => b.PublishedDate, f => DateTime.SpecifyKind(f.Date.Past(50), DateTimeKind.Utc))
             .RuleFor(b => b.PageCount, f => f.Random.Int(100, 1000))
             .RuleFor(b => b.CoverImageUrl, f => f.Image.PicsumUrl());
 

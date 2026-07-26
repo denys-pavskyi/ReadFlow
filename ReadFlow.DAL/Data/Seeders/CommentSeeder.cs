@@ -22,9 +22,9 @@ public class CommentSeeder : IDataSeeder
             .RuleFor(c => c.UserId, f => f.PickRandom(users).Id)
             .RuleFor(c => c.BookId, f => f.PickRandom(books).Id)
             .RuleFor(c => c.ParentCommentId, _ => null)
-            .RuleFor(c => c.CreatedAt, f => f.Date.Between(
-                DateTime.UtcNow.AddMonths(-6),
-                DateTime.UtcNow));
+            .RuleFor(c => c.CreatedAt, f => DateTime.SpecifyKind(
+                f.Date.Between(DateTime.UtcNow.AddMonths(-6), DateTime.UtcNow),
+                DateTimeKind.Utc));
 
         var topLevelComments = commentFaker.Generate(150);
         await context.Comments.AddRangeAsync(topLevelComments);

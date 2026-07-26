@@ -12,13 +12,11 @@ public static class DatabaseExtensions
         using var scope = services.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
-        // Apply pending migrations
         await context.Database.MigrateAsync();
 
-        // Check if already seeded (check if any users exist)
         if (await context.Users.AnyAsync())
         {
-            return; // Already seeded
+            return;
         }
 
         var seeder = new DatabaseSeeder(context);

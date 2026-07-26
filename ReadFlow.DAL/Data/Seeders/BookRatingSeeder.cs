@@ -30,9 +30,9 @@ public class BookRatingSeeder : IDataSeeder
                     .RuleFor(r => r.UserId, _ => user.Id)
                     .RuleFor(r => r.BookId, _ => book.Id)
                     .RuleFor(r => r.Rating, f => f.Random.Int(1, 10))
-                    .RuleFor(r => r.CreatedAt, f => f.Date.Between(
-                        DateTime.UtcNow.AddYears(-2),
-                        DateTime.UtcNow));
+                    .RuleFor(r => r.CreatedAt, f => DateTime.SpecifyKind(
+                        f.Date.Between(DateTime.UtcNow.AddYears(-2), DateTime.UtcNow),
+                        DateTimeKind.Utc));
 
                 ratings.Add(ratingFaker.Generate());
             }

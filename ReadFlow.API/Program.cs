@@ -108,6 +108,11 @@ namespace ReadFlow.API
 
             app.MapControllers();
 
+            if (app.Environment.IsDevelopment())
+            {
+                await app.Services.SeedDatabaseAsync();
+            }
+
             app.Run();
         }
     }
