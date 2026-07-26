@@ -28,8 +28,6 @@ public class RatingPatternDto
     public decimal UserAverageRating { get; set; }
     public decimal PlatformAverageRating { get; set; }
     public decimal RatingDifference { get; set; }
-
-    // Multi-dimensional array: [rating (1-10), count]
     public int[,] RatingDistribution { get; set; } = new int[10, 2];
 
     public Dictionary<string, decimal> GenreRatingAverages { get; set; } = new();

@@ -22,7 +22,6 @@ public class AnalyticsService
         // Get all user ratings from repository
         var userRatings = await _unitOfWork.Users.GetUserRatingsAsync(userId);
 
-        // Total books read (distinct books)
         var totalBooks = userRatings
             .Select(r => r.BookId)
             .Distinct()
@@ -40,21 +39,18 @@ public class AnalyticsService
             };
         }
 
-        // Books read this month
         var booksThisMonth = userRatings
             .Where(r => r.CreatedAt >= startOfMonth)
             .Select(r => r.BookId)
             .Distinct()
             .Count();
 
-        // Books read this year
         var booksThisYear = userRatings
             .Where(r => r.CreatedAt >= startOfYear)
             .Select(r => r.BookId)
             .Distinct()
             .Count();
 
-        // First and most recent rating dates
         var firstRating = userRatings
             .OrderBy(r => r.CreatedAt)
             .Select(r => r.CreatedAt)
@@ -65,7 +61,6 @@ public class AnalyticsService
             .Select(r => r.CreatedAt)
             .FirstOrDefault();
 
-        // Calculate duration and averages
         var durationDays = (int)(now - firstRating).TotalDays;
         var durationMonths = durationDays > 0 ? durationDays / 30.0m : 1;
         var durationYears = durationDays > 0 ? durationDays / 365.0m : 1;
@@ -85,7 +80,6 @@ public class AnalyticsService
 
     public async Task<RatingPatternDto> GetRatingPatternAsync(Guid userId)
     {
-        // Get user ratings from repository
         var userRatings = await _unitOfWork.Users.GetUserRatingsAsync(userId);
 
         if (userRatings.Count == 0)
@@ -99,13 +93,10 @@ public class AnalyticsService
             };
         }
 
-        // User average rating
         var userAvg = (decimal)userRatings.Average(r => r.Rating);
 
-        // Platform average rating (all users)
         var platformAvg = await _unitOfWork.Users.GetPlatformAverageRatingAsync();
 
-        // Rating distribution - MULTI-DIMENSIONAL ARRAY
         var ratingDistribution = new int[10, 2];
         for (int i = 0; i < 10; i++)
         {
@@ -115,7 +106,6 @@ public class AnalyticsService
             ratingDistribution[i, 1] = count;
         }
 
-        // Genre rating averages - get from repository
         var genreRatingData = await _unitOfWork.Users.GetUserGenreRatingsAsync(userId);
 
         var genreRatingAverages = genreRatingData
@@ -151,7 +141,6 @@ public class AnalyticsService
 
     public async Task<GenreBreakdownDto> GetGenreBreakdownAsync(Guid userId)
     {
-        // Get genre ratings from repository
         var genreRatingData = await _unitOfWork.Users.GetUserGenreRatingsAsync(userId);
 
         var genreStats = genreRatingData
