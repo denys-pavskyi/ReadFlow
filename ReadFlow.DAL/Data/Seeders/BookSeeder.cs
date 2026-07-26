@@ -12,6 +12,7 @@ public class BookSeeder : IDataSeeder
         {
             return;
         }
+
         var bookFaker = new Faker<Book>()
             .RuleFor(b => b.Title, f => $"{f.Commerce.ProductAdjective()} {f.Random.Word()} {f.Random.Word()}")
             .RuleFor(b => b.Author, f => f.Name.FullName())
@@ -23,15 +24,16 @@ public class BookSeeder : IDataSeeder
 
         var books = bookFaker.Generate(300);
 
-        await context.Books.AddRangeAsync(books);
+        context.Books.AddRange(books);
         await context.SaveChangesAsync();
 
         var allGenres = await context.Genres.ToListAsync();
         var bookGenres = new List<BookGenre>();
+        var random = new Random();
 
         foreach (var book in books)
         {
-            var genreCount = new Random().Next(1, 6);
+            var genreCount = random.Next(1, 6);
             var selectedGenres = allGenres.OrderBy(_ => Guid.NewGuid()).Take(genreCount);
 
             foreach (var genre in selectedGenres)
@@ -44,7 +46,7 @@ public class BookSeeder : IDataSeeder
             }
         }
 
-        await context.BookGenres.AddRangeAsync(bookGenres);
+        context.BookGenres.AddRange(bookGenres);
         await context.SaveChangesAsync();
     }
 }

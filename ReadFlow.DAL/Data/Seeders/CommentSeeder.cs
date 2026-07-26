@@ -41,9 +41,9 @@ public class CommentSeeder : IDataSeeder
                 .RuleFor(c => c.UserId, f => f.PickRandom(users).Id)
                 .RuleFor(c => c.BookId, _ => parentComment.BookId)
                 .RuleFor(c => c.ParentCommentId, _ => parentComment.Id)
-                .RuleFor(c => c.CreatedAt, f => f.Date.Between(
-                    parentComment.CreatedAt,
-                    DateTime.UtcNow));
+                .RuleFor(c => c.CreatedAt, f => DateTime.SpecifyKind(
+                    f.Date.Between(parentComment.CreatedAt, DateTime.UtcNow),
+                    DateTimeKind.Utc));
 
             comments.AddRange(replyFaker.Generate(replyCount));
         }

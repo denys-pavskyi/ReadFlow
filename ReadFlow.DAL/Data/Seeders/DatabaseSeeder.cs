@@ -1,3 +1,5 @@
+using Microsoft.Extensions.Logging;
+
 namespace ReadFlow.DAL.Data.Seeders;
 
 public class DatabaseSeeder
@@ -24,7 +26,10 @@ public class DatabaseSeeder
     {
         foreach (var seeder in _seeders)
         {
+            var seederName = seeder.GetType().Name;
+            Console.WriteLine($"Seeding {seederName}...");
             await seeder.SeedAsync(_context);
+            Console.WriteLine($"Completed {seederName}");
         }
     }
 }
