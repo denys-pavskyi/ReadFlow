@@ -23,6 +23,7 @@ public class AppDbContext : DbContext
     public DbSet<Post> Posts => Set<Post>();
     public DbSet<PostLike> PostLikes => Set<PostLike>();
     public DbSet<UserFollow> UserFollows => Set<UserFollow>();
+    public DbSet<ReadingGoal> ReadingGoals => Set<ReadingGoal>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -42,6 +43,7 @@ public class AppDbContext : DbContext
         modelBuilder.ApplyConfiguration(new PostConfiguration());
         modelBuilder.ApplyConfiguration(new PostLikeConfiguration());
         modelBuilder.ApplyConfiguration(new UserFollowConfiguration());
+        modelBuilder.ApplyConfiguration(new ReadingGoalConfiguration());
 
         // Global query filter for soft deletes
         modelBuilder.Entity<Comment>().HasQueryFilter(c => !c.IsDeleted);
