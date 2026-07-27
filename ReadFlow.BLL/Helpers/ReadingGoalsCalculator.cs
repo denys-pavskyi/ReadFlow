@@ -19,7 +19,7 @@ public static class ReadingGoalsCalculator
             return null;
 
         var now = DateTime.UtcNow;
-        var startOfYear = new DateTime(now.Year, 1, 1);
+        var startOfYear = new DateTime(now.Year, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 
         // Count books read this year
         var booksReadThisYear = await unitOfWork.Books
