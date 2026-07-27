@@ -18,12 +18,6 @@ public static class DatabaseExtensions
         {
             await context.Database.MigrateAsync();
 
-            if (await context.Users.AnyAsync() && await context.Books.AnyAsync())
-            {
-                logger.LogInformation("Database already seeded, skipping...");
-                return;
-            }
-
             logger.LogInformation("Starting database seeding...");
             var seeder = new DatabaseSeeder(context);
             await seeder.SeedAllAsync();
