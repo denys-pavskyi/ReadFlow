@@ -1,3 +1,4 @@
+using ReadFlow.BLL.ValueObjects;
 using ReadFlow.DAL.Entities;
 
 namespace ReadFlow.BLL.Helpers;
@@ -12,14 +13,14 @@ public static class RatingCalculator
         return Math.Round((decimal)ratings.Average(r => r.Rating), 2);
     }
 
-    public static int CalculateCommentScore(IEnumerable<CommentVote> votes)
+    public static VoteScore CalculateCommentScore(IEnumerable<CommentVote> votes)
     {
         if (!votes.Any())
-            return 0;
+            return VoteScore.Zero;
 
         var upvotes = votes.Count(v => v.IsUpvote);
         var downvotes = votes.Count(v => !v.IsUpvote);
 
-        return upvotes - downvotes;
+        return VoteScore.FromVotes(upvotes, downvotes);
     }
 }
