@@ -14,37 +14,39 @@ namespace ReadFlow.DAL.Tests.Repositories;
 [Category("Books")]
 public class BookRepositoryTests
 {
-    private InMemoryDbFixture _fixture = null!;
+    private DatabaseFixture _fixture = null!;
     private AppDbContext _context = null!;
     private IBookRepository _repository = null!;
     private BookBuilder _bookBuilder = null!;
-    private List<Genre> _genres = null!;
+
+    [OneTimeSetUp]
+    public void OneTimeSetup()
+    {
+        _fixture = new DatabaseFixture();
+        _fixture.GlobalSetup().Wait();
+    }
 
     [SetUp]
     public void Setup()
     {
-        _fixture = new InMemoryDbFixture();
-        _context = _fixture.CreateContext();
+        _context = new AppDbContext(_fixture.Options);
         _repository = new BookRepository(_context);
 
-        _genres = new List<Genre>
-        {
-            new Genre { Id = Guid.NewGuid(), Name = "Fiction", Description = "Fictional works", CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },
-            new Genre { Id = Guid.NewGuid(), Name = "Fantasy", Description = "Fantasy works", CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },
-            new Genre { Id = Guid.NewGuid(), Name = "Science Fiction", Description = "Sci-fi works", CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow }
-        };
+        _bookBuilder = new BookBuilder(_fixture.SeedGenres);
 
-        _context.Genres.AddRange(_genres);
-        _context.SaveChanges();
-
-        _bookBuilder = new BookBuilder(_genres);
+        _fixture.ResetDatabaseAsync().Wait();
     }
 
     [TearDown]
     public void TearDown()
     {
         _context.Dispose();
-        _fixture.Dispose();
+    }
+
+    [OneTimeTearDown]
+    public void OneTimeTearDown()
+    {
+        _fixture.GlobalTeardown().Wait();
     }
 
     [Test]
@@ -72,10 +74,13 @@ public class BookRepositoryTests
     [Test]
     public async Task GetBookWithGenresAsync_ExistingBookWithGenres_ReturnsBookWithGenres()
     {
+        var fictionGenre = _fixture.SeedGenres.First(g => g.Name == "Fiction");
+        var fantasyGenre = _fixture.SeedGenres.First(g => g.Name == "Fantasy");
+
         var book = _bookBuilder
             .WithTitle("Fantasy Book")
             .WithAuthor("J.R.R. Tolkien")
-            .WithGenres(_genres[0], _genres[1])
+            .WithGenres(fictionGenre, fantasyGenre)
             .Build();
 
         await _context.Books.AddAsync(book);
