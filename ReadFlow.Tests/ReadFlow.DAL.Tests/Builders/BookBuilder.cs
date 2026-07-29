@@ -72,8 +72,7 @@ public class BookBuilder
             var selectedGenres = new Faker().PickRandom(_availableGenres, Math.Min(count, _availableGenres.Count)).ToList();
             return selectedGenres.Select(g => new BookGenre
             {
-                GenreId = g.Id,
-                Genre = g
+                GenreId = g.Id
             }).ToList();
         });
         return this;
@@ -84,8 +83,7 @@ public class BookBuilder
         _faker.RuleFor(b => b.BookGenres, _ =>
             genres.Select(g => new BookGenre
             {
-                GenreId = g.Id,
-                Genre = g
+                GenreId = g.Id
             }).ToList());
         return this;
     }

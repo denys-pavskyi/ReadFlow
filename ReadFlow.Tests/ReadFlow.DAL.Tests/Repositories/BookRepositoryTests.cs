@@ -131,6 +131,7 @@ public class BookRepositoryTests
         book.Title = "Updated Title";
         book.PageCount = 500;
         await _repository.UpdateAsync(book);
+        await _context.SaveChangesAsync();
 
         var updatedBook = await _context.Books.FindAsync(book.Id);
         updatedBook.Should().NotBeNull();
@@ -146,6 +147,7 @@ public class BookRepositoryTests
         await _context.SaveChangesAsync();
 
         await _repository.DeleteAsync(book.Id);
+        await _context.SaveChangesAsync();
 
         var deletedBook = await _context.Books.FindAsync(book.Id);
         deletedBook.Should().BeNull();
